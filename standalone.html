@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AetherRecord - Zero-Setup Screen & Audio Recorder</title>
+  <meta name="description" content="A premium web utility to capture local video playbacks with audio and no controls. Seamless Mac screen recording tool.">
+  <style>
+/* AetherRecord - CSS Stylesheet */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-primary: #070913;
+  --bg-secondary: #0f1225;
+  --bg-card: rgba(20, 24, 48, 0.6);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --accent-primary: #6366f1; /* Indigo */
+  --accent-secondary: #ec4899; /* Pink */
+  --accent-success: #10b981; /* Emerald */
+  --accent-record: #ef4444; /* Red */
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  --text-subtle: #6b7280;
+  --glow-indigo: rgba(99, 102, 241, 0.15);
+  --glow-pink: rgba(236, 72, 153, 0.15);
+  --glow-record: rgba(239, 68, 68, 0.4);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2rem 1rem;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* App Layout */
+.app-container {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  z-index: 10;
+  transition: var(--transition-smooth);
+}
+
+header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  background: linear-gradient(135deg, #fff 30%, var(--accent-primary) 70%, var(--accent-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.logo-dot {
+  width: 12px;
+  height: 12px;
+  background-color: var(--accent-secondary);
+  border-radius: 50%;
+  box-shadow: 0 0 15px var(--accent-secondary);
+}
+
+header p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  font-weight: 300;
+}
+
+/* Glassmorphism Panel */
+.panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: var(--transition-smooth);
+}
+
+/* Upload Area */
+.upload-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+  transition: var(--transition-smooth);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.05);
+  box-shadow: 0 0 20px var(--glow-indigo);
+}
+
+.upload-icon {
+  font-size: 3rem;
+  color: var(--accent-primary);
+  transition: var(--transition-smooth);
+}
+
+.upload-zone:hover .upload-icon {
+  transform: translateY(-5px);
+  color: var(--accent-secondary);
+}
+
+.upload-text h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.upload-text p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+#file-input {
+  display: none;
+}
+
+/* Video Config Panel */
+.config-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.video-info-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.video-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.video-title {
+  font-weight: 600;
+  font-size: 1rem;
+  max-width: 350px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.video-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.change-file-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: var(--transition-smooth);
+}
+
+.change-file-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--text-muted);
+}
+
+/* Settings Options */
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 1rem;
+  border-radius: 12px;
+}
+
+.setting-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.setting-title {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.setting-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Switch Toggle styling */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: .4s;
+  border-radius: 34px;
+  border: 1px solid var(--border-color);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .slider {
+  background-color: var(--accent-primary);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--accent-primary);
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+/* Action Area */
+.actions-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.record-btn {
+  background: linear-gradient(135deg, var(--accent-record) 0%, #dc2626 100%);
+  border: none;
+  color: white;
+  padding: 1.25rem 3rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px var(--glow-record);
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.record-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(239, 68, 68, 0.6);
+}
+
+.record-btn:active {
+  transform: translateY(1px);
+}
+
+.record-btn-icon {
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+
+.pulse-ring {
+  border: 3px solid var(--accent-record);
+  border-radius: 50px;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: pulse-ring-anim 2s infinite;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes pulse-ring-anim {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
+/* Instructions card */
+.instructions-panel {
+  background: rgba(20, 24, 48, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 1.5rem;
+}
+
+.instructions-panel h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.instructions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  list-style: none;
+}
+
+.instructions-list li {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 0.75rem;
+  line-height: 1.4;
+}
+
+.step-num {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--accent-primary);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.step-highlight {
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+/* Hidden Recording State Layout */
+.recording-overlay {
+  display: none;
+}
+
+body.recording-active {
+  background: #000 !important;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  padding: 0;
+  margin: 0;
+}
+
+body.recording-active .app-container {
+  display: none !important;
+}
+
+body.recording-active .recording-overlay {
+  display: flex !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 99999;
+  justify-content: center;
+  align-items: center;
+  cursor: none; /* Hides cursor in screen recording */
+}
+
+#recording-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  outline: none;
+  border: none;
+}
+
+/* Stop recording hotkey / escape hint (flashes briefly or shows on hover) */
+.recording-hint {
+  position: absolute;
+  bottom: 2rem;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 100000;
+}
+
+.recording-overlay:hover .recording-hint {
+  opacity: 1;
+}
+
+/* Success Modal & Preview */
+.success-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.success-badge {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--accent-success);
+  padding: 0.5rem 1.25rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.success-icon-check {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  border: solid var(--accent-success);
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+.preview-container {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  position: relative;
+}
+
+#result-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+}
+
+.btn-primary {
+  flex: 1;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, #4f46e5 100%);
+  border: none;
+  color: white;
+  padding: 0.85rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px var(--glow-indigo);
+}
+
+.btn-secondary {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 0.85rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--text-muted);
+}
+
+footer {
+  margin-top: auto;
+  padding-top: 3rem;
+  color: var(--text-subtle);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+</style>
+</head>
+<body>
+  
+  <div class="app-container">
+    
+    <!-- Header logo -->
+    <header>
+      <div class="logo">
+        <div class="logo-dot"></div>
+        AetherRecord
+      </div>
+      <p>Seamless Mac video recording with high-fidelity internal audio</p>
+    </header>
+
+    <!-- Main Content Area -->
+    <main>
+      
+      <!-- Panel 1: File Upload -->
+      <div id="panel-upload" class="panel">
+        <div class="upload-zone" id="upload-zone">
+          <div class="upload-icon">✦</div>
+          <div class="upload-text">
+            <h3>Upload your video file</h3>
+            <p>Drag and drop or click to browse. Supports MP4, WebM, MOV, and more.</p>
+          </div>
+          <input type="file" id="file-input" accept="video/*">
+        </div>
+      </div>
+
+      <!-- Panel 2: Config and Action -->
+      <div id="panel-config" class="panel" style="display: none;">
+        <div class="config-container">
+          
+          <!-- Video info banner -->
+          <div class="video-info-card">
+            <div class="video-details">
+              <div class="video-title" id="video-title">video-name.mp4</div>
+              <div class="video-meta" id="video-meta">0.0 MB • 0:00 • 1920x1080</div>
+            </div>
+            <button class="change-file-btn" id="change-file-btn">Change Video</button>
+          </div>
+
+          <!-- Configuration Settings -->
+          <div class="settings-group">
+            
+            <div class="setting-row">
+              <div class="setting-label">
+                <span class="setting-title">Auto-Stop on End</span>
+                <span class="setting-desc">Automatically finish recording when the video reaches the end.</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggle-autostop" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label">
+                <span class="setting-title">Mix Microphone Audio</span>
+                <span class="setting-desc">Enable if you want to speak over the video (mixes mic with internal audio).</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggle-mic">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+          </div>
+
+          <!-- Record Action -->
+          <div class="actions-container">
+            <button class="record-btn" id="record-btn">
+              <span class="record-btn-icon"></span>
+              Start Recording
+              <span class="pulse-ring"></span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Panel 3: Success Screen and Preview -->
+      <div id="panel-success" class="panel" style="display: none;">
+        <div class="success-card">
+          <div class="success-badge">
+            <span class="success-icon-check"></span>
+            Recording Captured
+          </div>
+          
+          <div class="preview-container">
+            <video id="result-preview" controls></video>
+          </div>
+
+          <div class="preview-actions">
+            <button class="btn-primary" id="download-btn">Download Recording</button>
+            <button class="btn-secondary" id="record-again-btn">Record Another</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Instructions Panel -->
+    <section class="instructions-panel">
+      <h4>💡 macOS Video Recording Guide</h4>
+      <ul class="instructions-list">
+        <li>
+          <span class="step-num">1</span>
+          <div>Upload your video. The app automatically detects the <span class="step-highlight">native resolution</span> (e.g., 1080p, 4K) to record at its original size.</div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>Toggle <span class="step-highlight">"Mix Microphone Audio"</span> if you want to narrate over the video sound.</div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div>Click <span class="step-highlight">Start Recording</span>. Playback starts immediately. No window or screen sharing selection prompt is required!</div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div>The engine captures the raw media streams directly. Player controls, background UI, and mouse cursors are <span class="step-highlight">never recorded</span>. Press <span class="step-highlight">ESC</span> to stop early.</div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      AetherRecord • Securely processed entirely in-browser locally.
+    </footer>
+
+  </div>
+
+  <!-- Fullscreen recording element (styled fixed overlay, hidden initially) -->
+  <div id="recording-overlay" class="recording-overlay">
+    <video id="recording-video" preload="auto"></video>
+    <div class="recording-hint">Press <strong>ESC</strong> to stop recording early</div>
+  </div>
+
+  <script>
+/* AetherRecord - Application Logic (HTML5 captureStream Version) */
+
+// UI State Elements
+const uploadZone = document.getElementById('upload-zone');
+const fileInput = document.getElementById('file-input');
+const panelUpload = document.getElementById('panel-upload');
+const panelConfig = document.getElementById('panel-config');
+const panelSuccess = document.getElementById('panel-success');
+
+const videoTitle = document.getElementById('video-title');
+const videoMeta = document.getElementById('video-meta');
+const changeFileBtn = document.getElementById('change-file-btn');
+
+const toggleMic = document.getElementById('toggle-mic');
+const toggleAutostop = document.getElementById('toggle-autostop');
+const recordBtn = document.getElementById('record-btn');
+
+const recordingOverlay = document.getElementById('recording-overlay');
+const recordingVideo = document.getElementById('recording-video');
+const resultPreview = document.getElementById('result-preview');
+
+const downloadBtn = document.getElementById('download-btn');
+const recordAgainBtn = document.getElementById('record-again-btn');
+
+// State Variables
+let selectedFile = null;
+let videoUrl = null;
+let videoStream = null;
+let micStream = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let finalRecordedStream = null;
+let selectedMimeType = '';
+let selectedExtension = 'webm';
+
+// Global Web Audio nodes for routing and mixing
+let audioContext = null;
+let videoSourceNode = null;
+let micSourceNode = null;
+let mixDestination = null;
+
+// Initialize Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+  setupUploadEvents();
+  setupConfigEvents();
+  setupRecordingEvents();
+});
+
+// 1. File Upload and Drag & Drop Setup
+function setupUploadEvents() {
+  // Click on dropzone triggers file input
+  uploadZone.addEventListener('click', () => fileInput.click());
+
+  // Handle file selection
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleFileSelection(e.target.files[0]);
+    }
+  });
+
+  // Drag over effects
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+  });
+
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+  });
+
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+      handleFileSelection(e.dataTransfer.files[0]);
+    }
+  });
+}
+
+function handleFileSelection(file) {
+  // Validate that it's a video file
+  if (!file.type.startsWith('video/')) {
+    alert('Please upload a valid video file (MP4, WebM, etc.).');
+    return;
+  }
+
+  selectedFile = file;
+
+  // Revoke existing URL if any
+  if (videoUrl) {
+    URL.revokeObjectURL(videoUrl);
+  }
+
+  // Create Object URL for playback
+  videoUrl = URL.createObjectURL(file);
+  recordingVideo.src = videoUrl;
+  recordingVideo.load();
+
+  // Update UI Metadata
+  videoTitle.textContent = file.name;
+  
+  // Format File Size
+  const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+  
+  // Wait for metadata to load to get duration & dimensions
+  recordingVideo.onloadedmetadata = () => {
+    const minutes = Math.floor(recordingVideo.duration / 60);
+    const seconds = Math.floor(recordingVideo.duration % 60).toString().padStart(2, '0');
+    const width = recordingVideo.videoWidth;
+    const height = recordingVideo.videoHeight;
+    
+    videoMeta.textContent = `${sizeMB} MB • ${minutes}:${seconds} • ${width}x${height}px`;
+  };
+
+  // Switch panels
+  panelUpload.style.display = 'none';
+  panelConfig.style.display = 'block';
+  panelSuccess.style.display = 'none';
+}
+
+// 2. Configuration Setup
+function setupConfigEvents() {
+  changeFileBtn.addEventListener('click', () => {
+    panelConfig.style.display = 'none';
+    panelUpload.style.display = 'block';
+    fileInput.value = '';
+    selectedFile = null;
+    if (videoUrl) {
+      URL.revokeObjectURL(videoUrl);
+      videoUrl = null;
+    }
+  });
+}
+
+// 3. Recording Mechanics
+function setupRecordingEvents() {
+  recordBtn.addEventListener('click', startRecordingFlow);
+  
+  // Handle auto-stop on video completion
+  recordingVideo.addEventListener('ended', () => {
+    if (toggleAutostop.checked && mediaRecorder && mediaRecorder.state !== 'inactive') {
+      stopRecordingFlow();
+    }
+  });
+
+  // Global listener for Escape key to stop recording manually
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('recording-active')) {
+      stopRecordingFlow();
+    }
+  });
+
+  // Action button handlers in success page
+  recordAgainBtn.addEventListener('click', () => {
+    panelSuccess.style.display = 'none';
+    panelConfig.style.display = 'block';
+    
+    // Clear preview source
+    if (resultPreview.src) {
+      URL.revokeObjectURL(resultPreview.src);
+      resultPreview.src = '';
+    }
+  });
+}
+
+// Initialize Web Audio Routing nodes
+function initAudioRouting() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    mixDestination = audioContext.createMediaStreamDestination();
+    
+    // Connect the HTML5 Video node into our Web Audio graph.
+    // This can only be done ONCE per video element lifetime.
+    videoSourceNode = audioContext.createMediaElementSource(recordingVideo);
+    
+    // Connect the video audio source to:
+    // 1. System speakers (so the user can hear the video during recording)
+    videoSourceNode.connect(audioContext.destination);
+    // 2. The mixed output recorder node
+    videoSourceNode.connect(mixDestination);
+  }
+}
+
+async function startRecordingFlow() {
+  recordedChunks = [];
+  videoStream = null;
+  micStream = null;
+  finalRecordedStream = null;
+
+  try {
+    // 1. Initialize Web Audio Context and nodes
+    initAudioRouting();
+
+    // Resume AudioContext if suspended (browser security requirement)
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
+
+    // 2. Capture Video Element Stream Directly (Zero-Prompt, Native Resolution)
+    if (recordingVideo.captureStream) {
+      videoStream = recordingVideo.captureStream();
+    } else if (recordingVideo.mozCaptureStream) {
+      videoStream = recordingVideo.mozCaptureStream();
+    } else {
+      throw new Error("captureStream() is not supported in this browser. Please use Chrome, Edge, Safari, or Firefox.");
+    }
+
+    // 3. Connect Microphone if option is enabled
+    const mixMicEnabled = toggleMic.checked;
+    if (mixMicEnabled) {
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        micSourceNode = audioContext.createMediaStreamSource(micStream);
+        micSourceNode.connect(mixDestination);
+      } catch (micErr) {
+        console.warn("Failed to acquire microphone stream:", micErr);
+        alert("Could not access microphone. Recording will proceed with video audio only.");
+      }
+    }
+
+    // 4. Combine the captured Video element track and final mixed audio track
+    const videoTrack = videoStream.getVideoTracks()[0];
+    if (!videoTrack) {
+      throw new Error("No video track found in the video element stream. Make sure the video is fully loaded.");
+    }
+
+    // The audio output will be captured from the Web Audio mixer destination
+    const audioTrack = mixDestination.stream.getAudioTracks()[0];
+    
+    const tracksToRecord = [videoTrack];
+    if (audioTrack) {
+      tracksToRecord.push(audioTrack);
+    }
+
+    finalRecordedStream = new MediaStream(tracksToRecord);
+
+    // 5. Initialize MediaRecorder with dynamic MIME type detection
+    const mimeTypesToCheck = [
+      { mime: 'video/mp4;codecs=avc1.64003E,mp4a.40.2', ext: 'mp4' },
+      { mime: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', ext: 'mp4' },
+      { mime: 'video/mp4', ext: 'mp4' },
+      { mime: 'video/webm;codecs=vp9,opus', ext: 'webm' },
+      { mime: 'video/webm;codecs=vp8,opus', ext: 'webm' },
+      { mime: 'video/webm', ext: 'webm' }
+    ];
+
+    let options = {};
+    selectedMimeType = '';
+    selectedExtension = 'webm';
+
+    for (const item of mimeTypesToCheck) {
+      if (MediaRecorder.isTypeSupported(item.mime)) {
+        options = { mimeType: item.mime };
+        selectedMimeType = item.mime;
+        selectedExtension = item.ext;
+        break;
+      }
+    }
+
+    if (!selectedMimeType) {
+      options = {};
+      selectedMimeType = 'default';
+      selectedExtension = 'webm';
+    }
+
+    console.log(`Using MIME type: ${selectedMimeType}, extension: ${selectedExtension}`);
+    mediaRecorder = new MediaRecorder(finalRecordedStream, options);
+
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data && event.data.size > 0) {
+        recordedChunks.push(event.data);
+      }
+    };
+
+    mediaRecorder.onstop = saveRecordedData;
+
+    // 6. Put page into recording state (displays video full screen for monitoring)
+    document.body.classList.add('recording-active');
+    
+    // Play the video and start the recorder
+    recordingVideo.currentTime = 0;
+    recordingVideo.muted = false; // Ensure unmuted so sound is heard and recorded
+    
+    setTimeout(() => {
+      recordingVideo.play()
+        .then(() => {
+          mediaRecorder.start(1000); // chunk every 1 sec
+        })
+        .catch(err => {
+          console.error("Playback failed:", err);
+          stopRecordingFlow();
+          alert("Error starting video playback. Make sure you interact with the page first.");
+        });
+    }, 100);
+
+  } catch (err) {
+    console.error("Failed to start recording:", err);
+    alert("Could not start recording. Error: " + err.message);
+    cleanupStreams();
+  }
+}
+
+function stopRecordingFlow() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  }
+  
+  // Pause the recording video
+  recordingVideo.pause();
+  
+  // Remove recording overlay styles
+  document.body.classList.remove('recording-active');
+  
+  cleanupStreams();
+}
+
+function cleanupStreams() {
+  // Disconnect microphone source node if active
+  if (micSourceNode) {
+    micSourceNode.disconnect();
+    micSourceNode = null;
+  }
+
+  // Stop microphone hardware tracks
+  if (micStream) {
+    micStream.getTracks().forEach(track => track.stop());
+    micStream = null;
+  }
+
+  // Stop the media tracks generated by captureStream()
+  if (videoStream) {
+    videoStream.getTracks().forEach(track => track.stop());
+    videoStream = null;
+  }
+}
+
+function saveRecordedData() {
+  if (recordedChunks.length === 0) {
+    alert("Recording completed, but no video data was captured.");
+    return;
+  }
+
+  // Create a blob containing the recorded video data in the correct format
+  const blob = new Blob(recordedChunks, { type: selectedMimeType === 'default' ? 'video/webm' : selectedMimeType });
+  const recordedUrl = URL.createObjectURL(blob);
+
+  // Load preview in UI
+  resultPreview.src = recordedUrl;
+
+  // Generate automated filename
+  const now = new Date();
+  const dateStr = now.getFullYear() +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    String(now.getDate()).padStart(2, '0') + '_' +
+    String(now.getHours()).padStart(2, '0') +
+    String(now.getMinutes()).padStart(2, '0');
+  const filename = `recording_${dateStr}.${selectedExtension}`;
+
+  // Set up download button action
+  downloadBtn.onclick = () => {
+    const a = document.createElement('a');
+    a.href = recordedUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  // Automatically trigger the download
+  downloadBtn.click();
+
+  // Show success state panel
+  panelConfig.style.display = 'none';
+  panelSuccess.style.display = 'block';
+}
+
+</script>
+</body>
+</html>
